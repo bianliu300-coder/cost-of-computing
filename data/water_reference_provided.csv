@@ -1,0 +1,5 @@
+indicator,value,unit,scope,source,note
+large_data_center_daily_water,5,million gallons per day,Large data center,EESI,大型数据中心每日用水量上限
+large_data_center_population_equivalent_low,10000,people,Large data center,EESI,相当于一个小镇的用水
+large_data_center_population_equivalent_high,50000,people,Large data center,EESI,相当于一个小镇的用水
+average_wue,1.9,liters per kWh,Data centers,EESI,数据中心平均水使用效率参考值
