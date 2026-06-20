@@ -1,0 +1,3 @@
+metric,label,value,unit,source_title,source_url,note
+indirect_water,间接耗水,800,billion_liters,LBNL Report,https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf,"Indirect water consumption associated with electricity behind US data centers."
+ghg_emissions,温室气体排放,61,billion_kg_co2e,LBNL Report,https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf,"Greenhouse gas emissions associated with US data centers."

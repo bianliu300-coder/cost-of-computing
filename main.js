@@ -1,23 +1,30 @@
-const chartDefaults = {
-  color: "#5d6470",
-  borderColor: "#d6cdbd",
-  font: {
-    family: '"Noto Sans SC", "Microsoft YaHei", Arial, sans-serif',
-    size: 13
-  }
+const palette = {
+  ink: "#081A2B",
+  blue: "#3BA9FF",
+  accent: "#B64A45",
+  amber: "#B8872D",
+  green: "#367B68",
+  muted: "#6B7280",
+  line: "#D5DCE4"
 };
 
-Chart.defaults.color = chartDefaults.color;
-Chart.defaults.font = chartDefaults.font;
-Chart.defaults.plugins.legend.labels.boxWidth = 12;
-Chart.defaults.plugins.tooltip.backgroundColor = "#191b1f";
+Chart.defaults.color = "#5d6470";
+Chart.defaults.font.family = '"Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+Chart.defaults.plugins.tooltip.backgroundColor = "#081A2B";
 Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.legend.labels.boxWidth = 12;
 
 const sources = {
-  global: "data/electricity_global.csv",
-  us: "data/electricity_us.csv",
-  water: "data/water_impact.csv"
+  global: "data/global_energy.csv",
+  regional: "data/regional_growth.csv",
+  us: "data/us_energy_scenarios.csv",
+  water: "data/water_footprint.csv",
+  hidden: "data/hidden_costs.csv",
+  stakeholders: "data/stakeholders.csv"
 };
+
+const store = {};
+const charts = {};
 
 function parseCSV(text) {
   const rows = [];
@@ -28,7 +35,6 @@ function parseCSV(text) {
   for (let i = 0; i < text.length; i += 1) {
     const char = text[i];
     const next = text[i + 1];
-
     if (char === '"' && quoted && next === '"') {
       cell += '"';
       i += 1;
@@ -70,208 +76,224 @@ function number(value) {
   return Number.parseFloat(value);
 }
 
-function sourceFooter(items) {
-  const titles = [...new Set(items.map((item) => item.source_title).filter(Boolean))];
-  return titles.length ? `来源：${titles.join("；")}` : "";
+function makeTable(rows) {
+  if (!rows.length) return "";
+  const headers = Object.keys(rows[0]);
+  const thead = headers.map((header) => `<th scope="col">${header}</th>`).join("");
+  const body = rows.map((row) => `<tr>${headers.map((header) => `<td>${row[header] || ""}</td>`).join("")}</tr>`).join("");
+  return `<table><thead><tr>${thead}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
-function makeGlobalChart(rows) {
-  const base = rows.filter((row) => row.scenario === "base_case");
-  const range2035 = rows.filter((row) => row.year === "2035" && row.scenario !== "base_case");
-  const labels = base.map((row) => row.year);
+function fillTables() {
+  document.getElementById("globalTable").innerHTML = makeTable(store.global.filter((row) => row.scenario === "base_case"));
+  document.getElementById("scenarioTable").innerHTML = makeTable(store.global.filter((row) => row.year === "2035"));
+  document.getElementById("regionalTable").innerHTML = makeTable(store.regional);
+  document.getElementById("usTable").innerHTML = makeTable(store.us.filter((row) => row.electricity_twh));
+  document.getElementById("shareTable").innerHTML = makeTable(store.us.filter((row) => row.share_us_electricity_percent));
+  document.getElementById("waterTable").innerHTML = makeTable(store.water);
+}
 
-  new Chart(document.getElementById("globalElectricityChart"), {
+function commonOptions(yTitle) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: yTitle },
+        grid: { color: "rgba(213, 220, 228, 0.72)" }
+      },
+      x: { grid: { display: false } }
+    }
+  };
+}
+
+function drawGlobalChart() {
+  const rows = store.global.filter((row) => row.scenario === "base_case");
+  charts.global = new Chart(document.getElementById("globalElectricityChart"), {
     type: "line",
     data: {
-      labels,
-      datasets: [
-        {
-          label: "基准情景用电量（TWh）",
-          data: base.map((row) => number(row.electricity_twh)),
-          borderColor: "#b83b36",
-          backgroundColor: "rgba(184, 59, 54, 0.14)",
-          pointBackgroundColor: "#b83b36",
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          tension: 0.28,
-          fill: true
-        },
-        {
-          label: "2035 敏感性低值（TWh）",
-          data: labels.map((year) => (year === "2035" ? number(range2035.find((row) => row.scenario === "low_sensitivity").electricity_twh) : null)),
-          borderColor: "#2f6f9f",
-          backgroundColor: "#2f6f9f",
-          pointStyle: "rectRot",
-          pointRadius: 7,
-          showLine: false
-        },
-        {
-          label: "2035 敏感性高值（TWh）",
-          data: labels.map((year) => (year === "2035" ? number(range2035.find((row) => row.scenario === "high_sensitivity").electricity_twh) : null)),
-          borderColor: "#cc8b2c",
-          backgroundColor: "#cc8b2c",
-          pointStyle: "rectRot",
-          pointRadius: 7,
-          showLine: false
-        }
-      ]
+      labels: rows.map((row) => row.year),
+      datasets: [{
+        label: "全球数据中心用电量（TWh）",
+        data: rows.map((row) => number(row.electricity_twh)),
+        borderColor: palette.blue,
+        backgroundColor: "rgba(59, 169, 255, 0.16)",
+        pointBackgroundColor: palette.blue,
+        pointRadius: 6,
+        tension: 0.25,
+        fill: true
+      }]
+    },
+    options: commonOptions("TWh")
+  });
+}
+
+function drawScenarioChart(active = "headwinds") {
+  const rows = store.global.filter((row) => row.year === "2035");
+  const colors = rows.map((row) => (row.scenario === active ? palette.blue : "#9CA3AF"));
+  if (charts.scenario) {
+    charts.scenario.data.datasets[0].backgroundColor = colors;
+    charts.scenario.update();
+    return;
+  }
+  charts.scenario = new Chart(document.getElementById("scenarioChart"), {
+    type: "bar",
+    data: {
+      labels: rows.map((row) => row.scenario_label),
+      datasets: [{
+        label: "2035 年情景用电量（TWh）",
+        data: rows.map((row) => number(row.electricity_twh)),
+        backgroundColor: colors,
+        borderRadius: 4
+      }]
+    },
+    options: commonOptions("TWh")
+  });
+}
+
+function drawRegionalChart() {
+  charts.regional = new Chart(document.getElementById("regionalGrowthChart"), {
+    type: "bar",
+    data: {
+      labels: store.regional.map((row) => row.region),
+      datasets: [{
+        label: "新增用电需求（TWh）",
+        data: store.regional.map((row) => number(row.added_electricity_twh)),
+        backgroundColor: [palette.blue, palette.accent, palette.amber, palette.green],
+        borderRadius: 4
+      }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        subtitle: {
-          display: true,
-          text: sourceFooter(rows),
-          align: "start",
-          padding: { bottom: 14 }
-        },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              return `${context.dataset.label}：${context.raw} TWh`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "TWh" },
-          grid: { color: "rgba(214, 205, 189, 0.72)" }
-        },
-        x: {
-          grid: { display: false }
-        }
-      }
+      ...commonOptions("TWh"),
+      indexAxis: "y"
     }
   });
 }
 
-function makeUSElectricityChart(rows) {
-  const labels = ["2014", "2018", "2023", "2028 低情景", "2028 高情景"];
-  const lookup = new Map(rows.map((row) => [`${row.year}-${row.scenario}`, row]));
-  const values = [
-    lookup.get("2014-historical_estimate"),
-    lookup.get("2018-historical_estimate"),
-    lookup.get("2023-current_estimate"),
-    lookup.get("2028-low_projection"),
-    lookup.get("2028-high_projection")
-  ].map((row) => number(row.electricity_twh));
-
-  new Chart(document.getElementById("usElectricityChart"), {
+function drawUSChart() {
+  const rows = store.us;
+  const historical = rows.filter((row) => row.scenario === "historical" || row.scenario === "current");
+  const low = rows.find((row) => row.scenario === "low_projection");
+  const high = rows.find((row) => row.scenario === "high_projection");
+  charts.us = new Chart(document.getElementById("usElectricityChart"), {
     type: "bar",
     data: {
-      labels,
-      datasets: [
-        {
-          label: "美国数据中心用电量（TWh）",
-          data: values,
-          backgroundColor: ["#8c8f95", "#8c8f95", "#b83b36", "#cc8b2c", "#2f6f9f"],
-          borderRadius: 4
-        }
-      ]
+      labels: [...historical.map((row) => row.year), "2028 预测区间"],
+      datasets: [{
+        label: "美国数据中心用电量（TWh）",
+        data: [...historical.map((row) => number(row.electricity_twh)), [number(low.electricity_twh), number(high.electricity_twh)]],
+        backgroundColor: ["#8C8F95", "#8C8F95", palette.blue, palette.accent],
+        borderRadius: 4
+      }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        subtitle: {
-          display: true,
-          text: sourceFooter(rows),
-          align: "start",
-          padding: { bottom: 14 }
-        },
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            afterLabel(context) {
-              const row = rows.find((item) => number(item.electricity_twh) === context.raw);
-              return row && row.share_us_electricity_percent
-                ? `占全美用电：${row.share_us_electricity_percent}%`
-                : "";
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "TWh" },
-          grid: { color: "rgba(214, 205, 189, 0.72)" }
-        },
-        x: {
-          grid: { display: false }
-        }
-      }
-    }
+    options: commonOptions("TWh")
+  });
+
+  charts.share = new Chart(document.getElementById("usShareChart"), {
+    type: "bar",
+    data: {
+      labels: ["2023", "2028 预测区间"],
+      datasets: [{
+        label: "占美国总用电比例（%）",
+        data: [4.4, [6.7, 12]],
+        backgroundColor: [palette.blue, palette.accent],
+        borderRadius: 4
+      }]
+    },
+    options: commonOptions("%")
   });
 }
 
-function makeWaterChart(rows) {
-  const chartRows = rows.filter((row) => row.metric === "onsite_water_consumption");
-  const labels = chartRows.map((row) => (row.scenario.includes("projection") ? `${row.year} ${row.scenario_label}` : row.year));
-
-  new Chart(document.getElementById("waterChart"), {
+function drawWaterChart() {
+  const rows = store.water;
+  const low = rows.find((row) => row.scenario === "low_projection");
+  const high = rows.find((row) => row.scenario === "high_projection");
+  const historical = rows.filter((row) => row.scenario === "historical" || row.scenario === "current");
+  charts.water = new Chart(document.getElementById("waterChart"), {
     type: "bar",
     data: {
-      labels,
-      datasets: [
-        {
-          label: "现场用水量（十亿升）",
-          data: chartRows.map((row) => number(row.value_billion_liters)),
-          backgroundColor: ["#427d5b", "#cc8b2c", "#2f6f9f"],
-          borderRadius: 4
-        }
-      ]
+      labels: [...historical.map((row) => row.year), "2028 超大规模区间"],
+      datasets: [{
+        label: "直接耗水（十亿升）",
+        data: [...historical.map((row) => number(row.value_billion_liters)), [number(low.value_billion_liters), number(high.value_billion_liters)]],
+        backgroundColor: [palette.green, palette.blue, palette.accent],
+        borderRadius: 4
+      }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        subtitle: {
-          display: true,
-          text: sourceFooter(chartRows),
-          align: "start",
-          padding: { bottom: 14 }
-        },
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label(context) {
-              return `${context.raw} 十亿升`;
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: "十亿升" },
-          grid: { color: "rgba(214, 205, 189, 0.72)" }
-        },
-        x: {
-          grid: { display: false }
-        }
-      }
-    }
+    options: commonOptions("十亿升")
   });
+}
+
+function renderHiddenCosts() {
+  const container = document.getElementById("hiddenCostCards");
+  container.innerHTML = store.hidden.map((row) => `
+    <article>
+      <span>${row.label}</span>
+      <strong>${row.value}</strong>
+      <em>${row.unit === "billion_liters" ? "十亿升" : "十亿千克 CO₂e"}</em>
+      <p>${row.note}</p>
+      <small>来源：${row.source_title}</small>
+    </article>
+  `).join("");
+}
+
+function renderStakeholders() {
+  const container = document.getElementById("stakeholderMap");
+  container.innerHTML = store.stakeholders.map((row) => `
+    <article class="${row.receives ? "gain" : "cost"}">
+      <h3>${row.stakeholder}</h3>
+      <p>${row.receives ? `获得：${row.receives}` : `承担：${row.bears}`}</p>
+    </article>
+  `).join("");
+}
+
+function bindScenarioButtons() {
+  document.querySelectorAll("[data-scenario]").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll("[data-scenario]").forEach((item) => item.classList.toggle("is-active", item === button));
+      drawScenarioChart(button.dataset.scenario);
+    });
+  });
+}
+
+function initReveal() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) entry.target.classList.add("is-visible");
+    });
+  }, { threshold: 0.18 });
+  document.querySelectorAll(".scrolly-section, .chart-card").forEach((item) => observer.observe(item));
 }
 
 async function init() {
   try {
-    const [globalRows, usRows, waterRows] = await Promise.all([
+    const [global, regional, us, water, hidden, stakeholders] = await Promise.all([
       loadCSV(sources.global),
+      loadCSV(sources.regional),
       loadCSV(sources.us),
-      loadCSV(sources.water)
+      loadCSV(sources.water),
+      loadCSV(sources.hidden),
+      loadCSV(sources.stakeholders)
     ]);
-
-    makeGlobalChart(globalRows);
-    makeUSElectricityChart(usRows);
-    makeWaterChart(waterRows);
+    Object.assign(store, { global, regional, us, water, hidden, stakeholders });
+    fillTables();
+    drawGlobalChart();
+    drawScenarioChart();
+    drawRegionalChart();
+    drawUSChart();
+    drawWaterChart();
+    renderHiddenCosts();
+    renderStakeholders();
+    bindScenarioButtons();
+    initReveal();
   } catch (error) {
-    document.querySelectorAll(".chart-frame").forEach((frame) => {
-      frame.innerHTML = `<p class="load-error">${error.message}。请通过本地服务器打开页面，例如 python -m http.server。</p>`;
+    document.querySelectorAll(".chart-card").forEach((card) => {
+      card.insertAdjacentHTML("beforeend", `<p class="load-error">${error.message}。请通过本地服务器打开页面。</p>`);
     });
   }
 }

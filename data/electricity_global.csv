@@ -1,6 +1,0 @@
-year,electricity_twh,scenario,scope,source_title,source_url,note
-2024,415,base_case,global_data_centres,IEA Energy and AI 2025,https://www.iea.org/reports/energy-and-ai,"IEA reports data centres accounted for around 1.5% of world electricity consumption in 2024."
-2030,945,base_case,global_data_centres,IEA Energy and AI 2025,https://www.iea.org/reports/energy-and-ai,"IEA Base Case projection; AI is described as the most important driver alongside other digital services."
-2035,1200,base_case,global_data_centres,IEA Energy and AI 2025,https://www.iea.org/reports/energy-and-ai,"IEA Base Case projection after 2030."
-2035,700,low_sensitivity,global_data_centres,IEA Energy and AI 2025,https://www.iea.org/reports/energy-and-ai,"Lower end of IEA sensitivity range for 2035."
-2035,1700,high_sensitivity,global_data_centres,IEA Energy and AI 2025,https://www.iea.org/reports/energy-and-ai,"Upper end of IEA sensitivity range for 2035."

@@ -1,68 +1,51 @@
-# 算力的代价：AI 竞赛的暗面
+# 一次 AI 提问之后，账单被转移给了谁？
 
-这是一个数据新闻课程作业的静态网页项目，聚焦 AI 数据中心扩张带来的电力、水资源与碳排放压力。页面使用 HTML、CSS、JavaScript 和 Chart.js，图表数据来自 `data/` 目录下的 CSV 文件。
+这是一个滚动式数据新闻网页，主题是“从云端回答到电网、水源与地方社区，看见 AI 竞赛背后的基础设施代价”。作品不估算单次 AI 提问的资源消耗，也不把所有数据中心用电简单归因于 AI，而是使用公开可验证的数据，把数据中心作为观察 AI 基础设施扩张影响的窗口。
 
-## 文件结构
+## 技术结构
 
-- `index.html`：页面结构与正文
-- `style.css`：数据新闻风格版式与响应式样式
-- `main.js`：CSV 加载、解析与 Chart.js 图表绘制
-- `vendor/chart.umd.min.js`：本地 Chart.js 4.4.7，避免 CDN 无法访问时图表失效
-- `data/electricity_global.csv`：全球数据中心用电量
-- `data/electricity_us.csv`：美国数据中心用电量
-- `data/water_impact.csv`：美国数据中心现场用水量与待补充项
+- `index.html`：11 个滚动叙事章节、图表容器、数据来源与制作说明
+- `style.css`：深色首页、浅色正文、scrollytelling 布局、响应式样式
+- `main.js`：CSV 加载、Chart.js 图表、数据表切换、滚动 reveal
+- `vendor/chart.umd.min.js`：本地 Chart.js，保证 GitHub Pages 可离线部署
+
+## 使用数据
+
+- `data/global_energy.csv`：全球数据中心用电增长与 2035 年情景
+- `data/regional_growth.csv`：2030 年前各地区新增数据中心用电需求
+- `data/us_energy_scenarios.csv`：美国数据中心用电与总用电占比
+- `data/water_footprint.csv`：美国数据中心直接耗水
+- `data/hidden_costs.csv`：间接耗水与温室气体排放数字卡片
+- `data/stakeholders.csv`：收益与成本承担关系矩阵
+- `data/data_notes.md`：数据整理说明与待补充项
 
 ## 数据来源
 
-1. International Energy Agency, *Energy and AI*, 2025  
+1. International Energy Agency, *Energy and AI*  
    https://www.iea.org/reports/energy-and-ai
-2. Lawrence Berkeley National Laboratory / U.S. Department of Energy, *2024 United States Data Center Energy Usage Report*, 2024  
+2. Lawrence Berkeley National Laboratory / U.S. Department of Energy, *2024 United States Data Center Energy Usage Report*  
    https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf
-3. Guidi et al., *Environmental Burden of United States Data Centers in the Artificial Intelligence Era*, 2024  
-   https://arxiv.org/abs/2411.09786
 
-## 字段说明
+## 口径说明
 
-### `electricity_global.csv`
+当前公开统计大多以“数据中心整体”为对象。数据中心负载包括 AI 训练、AI 推理、云计算、企业服务、存储和网络服务。因此：
 
-- `year`：年份
-- `electricity_twh`：数据中心用电量，单位为 TWh
-- `scenario`：情景类型，包括 `base_case`、`low_sensitivity`、`high_sensitivity`
-- `scope`：统计范围
-- `source_title`：来源名称
-- `source_url`：来源链接
-- `note`：口径说明
+`数据中心总用电 ≠ AI 单独用电`
 
-### `electricity_us.csv`
+本文使用数据中心作为观察 AI 基础设施扩张影响的窗口，不生成无法验证的单次 AI 查询耗电、耗水或碳排放估算。
 
-- `year`：年份
-- `electricity_twh`：美国数据中心用电量，单位为 TWh
-- `scenario`：历史估计、当前估计或预测情景
-- `share_us_electricity_percent`：占美国总用电量比例；缺失处表示源报告摘要中未采用该比例展示
-- `scope`：统计范围
-- `source_title`：来源名称
-- `source_url`：来源链接
-- `note`：口径说明
+## 图表与交互
 
-### `water_impact.csv`
-
-- `metric`：指标名称
-- `year`：年份；无可靠来源时标注为 `待补充`
-- `value_billion_liters`：现场用水量，单位为十亿升；无可靠来源时标注为 `待补充`
-- `scenario`：估计值、预测值或不可用状态
-- `scenario_label`：图表显示用中文标签
-- `scope`：统计范围
-- `source_title`：来源名称
-- `source_url`：来源链接
-- `note`：口径说明
-
-## 数据清洗步骤
-
-1. 从公开报告中摘录明确给出的 TWh、百分比和十亿升指标，只保留能追溯到来源的数字。
-2. 将不同来源统一为图表可读单位：电力统一为 TWh，水量统一为十亿升。
-3. 将预测值拆分为情景字段，例如低情景、高情景和基准情景，避免把区间误读为单一确定值。
-4. 对无法从公开来源拆分的 AI-only 指标标注为 `待补充`，不进入图表计算。
-5. 在 CSV 中保留 `source_title`、`source_url` 和 `note`，方便复核每个数据点的出处与口径。
+- AI 请求路径图：支持鼠标悬停和键盘聚焦查看说明
+- 全球数据中心用电增长：2024 至 2030
+- 2035 年三种未来情景：Headwinds、High Efficiency、Lift-Off
+- 地区新增用电需求：美国、中国、欧洲、日本
+- 美国数据中心用电增长与 2028 预测区间
+- 美国数据中心占总用电比例
+- 美国数据中心直接耗水增长
+- 隐藏账单数字卡片：间接耗水、温室气体排放
+- 成本承担关系图：用户、科技公司、地方社区、电网、政府
+- 每张图表均包含标题、单位、来源、图表说明、ARIA 描述和数据表按钮
 
 ## 本地运行
 

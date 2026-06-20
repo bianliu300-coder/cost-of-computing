@@ -1,6 +1,0 @@
-year,scope,value_twh,share_percent,scenario,source,note
-2014,US data centers,60,,historical,LBNL,约 60 TWh
-2018,US data centers,76,1.9,historical,LBNL,占美国总用电约 1.9%
-2023,US data centers,176,4.4,historical,LBNL,占美国总用电约 4.4%
-2028,US data centers,325,6.7,low_projection,LBNL,低情景预测
-2028,US data centers,580,12.0,high_projection,LBNL,高情景预测

@@ -1,0 +1,6 @@
+year,scope,electricity_twh,scenario,scenario_label,source_title,source_url,note
+2024,global_data_centers,415,base_case,2024 actual or estimate,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"Global data-centre electricity consumption in 2024."
+2030,global_data_centers,945,base_case,2030 base case,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"Global data-centre electricity consumption under IEA base case in 2030."
+2035,global_data_centers,700,headwinds,Headwinds,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"2035 scenario value provided for the interactive future scenarios chart."
+2035,global_data_centers,970,high_efficiency,High Efficiency,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"2035 scenario value provided for the interactive future scenarios chart."
+2035,global_data_centers,1700,lift_off,Lift-Off,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"2035 scenario value is 1700+ TWh; chart uses 1700 as the lower bound and labels it as 1700+."
