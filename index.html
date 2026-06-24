@@ -7,10 +7,10 @@
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
     <script src="vendor/chart.umd.min.js" defer></script>
-    <script src="main.js?v=20260620-scrolly" defer></script>
+    <script src="main.js?v=20260624-local-pressure" defer></script>
   </head>
   <body>
-    <header class="hero">
+    <header class="hero" id="top">
       <div class="hero__visual" aria-hidden="true">
         <div class="module-wall"></div>
         <div class="flow-line flow-line--power"></div>
@@ -20,122 +20,148 @@
         <div class="load-node load-node--three"></div>
       </div>
       <div class="hero__inner">
+        <p class="hero__kicker">数据新闻作品</p>
         <h1>一次 AI 提问之后，<span>账单被转移给了谁？</span></h1>
         <p class="hero__subtitle">从云端回答到电网、水源与地方社区，看见 AI 竞赛背后的基础设施代价</p>
         <p class="lead">
-          本文不把所有数据中心用电简单归因于 AI，而是以公开可验证的数据为基础，展示 AI 成为数据中心增长的重要驱动力后，能源、水资源和地方基础设施压力如何逐步显现。
+          本文以公开可验证的数据为基础，展示 AI 成为数据中心增长的重要驱动力后，电力、水资源和地方基础设施压力如何逐步显现。
         </p>
+        <p class="hero__note">提示：数据中心总用电不等于 AI 单独用电，本文把数据中心作为观察 AI 基础设施扩张的窗口。</p>
         <p class="hero__question">当用户享受 AI 带来的便利时，电力、水资源和地方基础设施压力正在被谁承担？</p>
         <nav class="hero__actions" aria-label="章节入口">
           <a href="#story-open">从发送键开始</a>
-          <a href="#section4-title">查看电力账单</a>
-          <a href="#section10-title">谁承担代价</a>
+          <a href="#power-bill">查看电力账单</a>
+          <a href="#who-pays">谁承担代价</a>
         </nav>
       </div>
     </header>
 
+    <nav class="progress-nav" aria-label="阅读进度">
+      <a href="#story-open" data-progress-link="story-open">发送键</a>
+      <a href="#power-bill" data-progress-link="power-bill">电力</a>
+      <a href="#local-pressure" data-progress-link="local-pressure">地方</a>
+      <a href="#water-bill" data-progress-link="water-bill">水资源</a>
+      <a href="#who-pays" data-progress-link="who-pays">谁承担</a>
+    </nav>
+
     <main>
-      <section class="scrolly-section opening-section" id="story-open" aria-labelledby="section1-title">
+      <section class="scrolly-section opening-section" id="story-open" aria-labelledby="section1-title" data-progress-section="story-open">
         <div class="section-copy">
           <p class="section-number">SECTION 1</p>
           <h2 id="section1-title">按下发送键之后</h2>
           <p class="story-lede">“请帮我总结这份报告。”这是一次再普通不过的 AI 提问。用户按下发送键，屏幕安静几秒，答案出现。</p>
-          <p>这几秒钟看起来轻巧、低成本、几乎没有摩擦。但答案并不是凭空出现。它要经过模型调用、GPU 计算、服务器运行、数据中心供电、冷却系统散热，并最终落到一个真实地点的电网、水源和基础设施上。</p>
-          <p>本文不估算单次提问耗电量，也不把所有数据中心用电都算作 AI 用电。它从公开可验证的数据出发，把数据中心当作观察 AI 基础设施扩张的窗口，追问：当用户享受 AI 带来的便利时，这张基础设施账单正在被谁承担？</p>
+          <p>这几秒钟看起来轻巧、低成本、几乎没有摩擦。但答案并不是凭空出现。它要经过模型调用、图形处理器计算、服务器运行、数据中心供电、冷却系统散热，并最终落到一个真实地点的电网、水源和基础设施上。</p>
+          <p>一次 AI 请求从屏幕开始，账单却在屏幕之外发生。对用户而言，路径只有“提问”和“回答”；对基础设施而言，路径要长得多。</p>
         </div>
-        <div class="visual-chain" aria-label="AI 提问从用户输入到电网和水资源的基础设施链路">
-          <span>用户输入框</span><span>AI 模型</span><span>GPU 服务器</span><span>数据中心</span><span>电网</span><span>水资源</span>
+        <div>
+          <div class="visual-chain" aria-label="AI 提问从用户输入到电网和水资源的基础设施链路">
+            <span>用户输入框</span><span>AI 模型</span><span>图形处理器服务器</span><span>数据中心</span><span>电网</span><span>水资源</span>
+          </div>
+          <div class="flow-map" role="list" aria-label="该图展示 AI 请求从用户到数据中心、电网和水资源的路径。每个节点可聚焦查看说明。">
+            <button type="button" role="listitem" data-tip="用户看到的是一次文本请求，但请求会被路由到远端服务。"><strong>用户</strong><small>发出一次看似轻量的请求。</small></button>
+            <button type="button" role="listitem" data-tip="模型决定如何生成回答，但模型运行需要计算资源。"><strong>AI 模型</strong><small>把请求转化为计算任务。</small></button>
+            <button type="button" role="listitem" data-tip="图形处理器负责高强度计算，是 AI 推理和训练的重要硬件。"><strong>图形处理器</strong><small>承担高强度并行计算。</small></button>
+            <button type="button" role="listitem" data-tip="数据中心集中放置服务器、网络和冷却设施。"><strong>数据中心</strong><small>集中承载服务器与网络。</small></button>
+            <button type="button" role="listitem" data-tip="持续运行的服务器需要稳定电力输入。"><strong>电网</strong><small>提供稳定且高容量的供电。</small></button>
+            <button type="button" role="listitem" data-tip="冷却和发电过程可能带来直接或间接水资源消耗。"><strong>水资源</strong><small>进入冷却与发电环节。</small></button>
+          </div>
+          <p class="long-desc">一次 AI 请求并不只发生在屏幕里。它从用户输入开始，经过 AI 模型和图形处理器服务器，在数据中心完成计算，并进一步连接到电网和水资源系统。</p>
         </div>
       </section>
 
-      <section class="scrolly-section" aria-labelledby="section2-title">
+      <section class="scrolly-section" id="scope-note" aria-labelledby="section2-title" data-progress-section="story-open">
         <div class="section-copy">
           <p class="section-number">SECTION 2</p>
-          <h2 id="section2-title">你看到答案，服务器看到负荷</h2>
-          <p>AI 产品把复杂基础设施压缩成一个聊天框。对用户而言，路径只有“提问”和“回答”；对基础设施而言，路径要长得多：用户请求被送到模型服务，计算在 GPU 和服务器上完成，机房需要稳定供电，热量需要被冷却系统带走。</p>
-          <p>这条链路之所以重要，是因为它把原本隐藏在“云端”里的成本重新带回现实世界。电力由电网承担，冷却可能需要水，数据中心选址会影响地方土地、输电线路和社区生活。</p>
-        </div>
-        <div class="flow-map" role="list" aria-label="该图展示 AI 请求从用户到数据中心、电网和水资源的路径。每个节点可聚焦查看说明。">
-          <button type="button" role="listitem" data-tip="用户看到的是一次文本请求，但请求会被路由到远端服务。">用户</button>
-          <button type="button" role="listitem" data-tip="模型决定如何生成回答，但模型运行需要计算资源。">AI 模型</button>
-          <button type="button" role="listitem" data-tip="GPU 负责高强度计算，是 AI 推理和训练的重要硬件。">GPU</button>
-          <button type="button" role="listitem" data-tip="数据中心集中放置服务器、网络和冷却设施。">数据中心</button>
-          <button type="button" role="listitem" data-tip="持续运行的服务器需要稳定电力输入。">电网</button>
-          <button type="button" role="listitem" data-tip="冷却和发电过程可能带来直接或间接水资源消耗。">水资源</button>
-        </div>
-        <p class="long-desc">一次 AI 请求并不只发生在屏幕里。它从用户输入开始，经过 AI 模型和 GPU 服务器，在数据中心完成计算，并进一步连接到电网和水资源系统。</p>
-      </section>
-
-      <section class="scrolly-section" aria-labelledby="section3-title">
-        <div class="section-copy">
-          <p class="section-number">SECTION 3</p>
-          <h2 id="section3-title">先把口径讲清楚</h2>
+          <h2 id="section2-title">先把口径讲清楚</h2>
           <div class="scope-box">
-            <strong>数据中心总用电 ≠ AI 单独用电</strong>
-            <p>目前公开统计数据大多以“数据中心整体”为统计对象。数据中心负载包括 AI 训练、AI 推理、云计算、企业服务、存储和网络服务。AI 是重要增长来源，但不是全部来源。</p>
+            <strong>数据中心用电，不等于 AI 单独用电</strong>
+            <p>目前公开统计大多以“数据中心整体”为口径，包含 AI 训练与推理、云计算、存储、网络服务和冷却系统等。本文把数据中心作为观察 AI 基础设施扩张的窗口，而不是把所有数据中心用电都归因于 AI。</p>
           </div>
-          <p>这一区分决定了本文的写法：我们不会把所有数据中心用电简单归因于 AI，而是把数据中心作为观察窗口。随着 AI 成为数据中心增长的重要驱动力，能源、水资源和地方基础设施压力会如何显现？</p>
-          <p>IEA 指出，加速服务器的用电增长速度远高于传统服务器，并成为未来数据中心增长的重要来源。换句话说，AI 的影响不一定能被单独拆出，但已经足以改变数据中心增长曲线。</p>
+          <p>这一区分决定了本文的写法：下面所有图表都以数据中心整体口径呈现。它们不能直接回答“单次 AI 提问消耗多少电”，但能显示 AI 基础设施扩张正在把哪些压力推向电网、水源和地方治理。</p>
+          <p>IEA 指出，加速服务器的用电增长速度远高于传统服务器，并成为未来数据中心增长的重要来源。AI 的影响不一定能被单独拆出，但已经足以改变数据中心增长曲线。</p>
         </div>
       </section>
 
-      <section class="scrolly-section chart-section" aria-labelledby="section4-title">
+      <section class="scrolly-section chart-section" id="power-bill" aria-labelledby="section3-title" data-progress-section="power-bill">
         <div class="chart-copy">
-          <p class="section-number">SECTION 4</p>
-          <h2 id="section4-title">第一张账单：电力</h2>
+          <p class="section-number">SECTION 3</p>
+          <h2 id="section3-title">第一张账单：电力</h2>
           <p class="chart-question">如果基准情景实现，全球数据中心用电会怎样变化？</p>
         </div>
         <figure class="chart-card">
           <figcaption>
             <strong>全球数据中心用电增长</strong>
-            <span>单位：TWh；来源：IEA Energy and AI</span>
+            <span>单位：TWh（太瓦时）；来源：IEA《Energy and AI》；数据整理：本作品</span>
           </figcaption>
-          <canvas id="globalElectricityChart" tabindex="0" role="img" aria-label="该图展示全球数据中心用电从2024年的415TWh增长到2030年的945TWh。"></canvas>
+          <canvas id="globalElectricityChart" tabindex="0" role="img" aria-label="图表显示全球数据中心用电从 2024 年 415 TWh 增至 2030 年 945 TWh，约为 2024 年的 2.3 倍。"></canvas>
+          <div class="chart-callout">约 2.3 倍</div>
           <p class="chart-finding">如果基准情景实现，到 2030 年全球数据中心用电将接近 2024 年的 2.3 倍。</p>
-          <p class="long-desc">图表以 2024 年 415 TWh 和 2030 年 945 TWh 两个节点展示增长，强调数据中心用电在 AI 和其他数字服务驱动下的系统性扩张。来源：IEA Energy and AI。</p>
+          <p class="long-desc">图表以 2024 年 415 TWh 和 2030 年 945 TWh 两个节点展示增长，强调数据中心用电在 AI 和其他数字服务驱动下的系统性扩张。这是数据中心整体口径，不是 AI 单独口径。</p>
         </figure>
       </section>
 
-      <section class="scrolly-section chart-section" aria-labelledby="section5-title">
+      <section class="scrolly-section chart-section" aria-labelledby="section4-title" data-progress-section="power-bill">
         <div class="chart-copy">
-          <p class="section-number">SECTION 5</p>
-          <h2 id="section5-title">未来并非只有一种答案</h2>
-          <p class="chart-question">2035 年的数据中心用电，会被效率、需求和监管推向哪一种未来？</p>
+          <p class="section-number">SECTION 4</p>
+          <h2 id="section4-title">未来并非只有一种答案</h2>
+          <p class="chart-question">2035 年的数据中心用电，会被效率、需求和电网瓶颈推向哪一种未来？</p>
         </div>
-        <figure class="chart-card">
+        <figure class="chart-card scenario-card">
           <figcaption>
-            <strong>2035 年三种未来情景</strong>
-            <span>单位：TWh；来源：IEA Energy and AI</span>
+            <strong>2035 年三种用电情景：效率、需求与瓶颈会把账单推向哪里？</strong>
+            <span>单位：TWh（太瓦时）；来源：IEA《Energy and AI》；数据整理：本作品</span>
           </figcaption>
           <div class="chart-controls" aria-label="2035 情景切换">
-            <button class="is-active" type="button" data-scenario="headwinds">Headwinds</button>
-            <button type="button" data-scenario="high_efficiency">High Efficiency</button>
-            <button type="button" data-scenario="lift_off">Lift-Off</button>
+            <button type="button" data-scenario="headwinds">阻力情景</button>
+            <button class="is-active" type="button" data-scenario="high_efficiency">高效率情景</button>
+            <button type="button" data-scenario="lift_off">起飞情景</button>
           </div>
-          <canvas id="scenarioChart" tabindex="0" role="img" aria-label="该图展示2035年Headwinds情景为700TWh，High Efficiency为970TWh，Lift-Off为1700TWh以上。"></canvas>
-          <p class="chart-finding">未来并非固定结果。AI 扩张速度、能源效率和监管环境都会影响最终账单。</p>
-          <p class="long-desc">三种情景给出 2035 年 700 TWh、970 TWh 和 1700+ TWh 的不同结果，说明同样是“AI 继续发展”，也可能对应不同能源压力。来源：IEA Energy and AI。</p>
+          <canvas id="scenarioChart" tabindex="0" role="img" aria-label="图表显示 2035 年三种数据中心用电情景：阻力情景约 700 TWh，高效率情景约 970 TWh，起飞情景约 1700 TWh 以上。"></canvas>
+          <div class="scenario-insight" id="scenarioInsight" aria-live="polite"></div>
+          <p class="chart-finding">不同情景之间的差距说明，AI 基础设施的电力压力不是固定命运，而取决于需求扩张、效率提升和电网瓶颈。</p>
+          <p class="long-desc">三种情景给出 2035 年 700 TWh、970 TWh 和 1700+ TWh 的不同结果。图表使用数据中心整体口径，不能被解读为 AI 单独用电预测。</p>
         </figure>
       </section>
 
-      <section class="scrolly-section chart-section" aria-labelledby="section6-title">
+      <section class="scrolly-section chart-section" aria-labelledby="section5-title" data-progress-section="local-pressure">
         <div class="chart-copy">
-          <p class="section-number">SECTION 6</p>
-          <h2 id="section6-title">账单不会平均分摊</h2>
+          <p class="section-number">SECTION 5</p>
+          <h2 id="section5-title">账单不会平均分摊</h2>
           <p class="chart-question">2030 年前，新增数据中心用电需求会集中到哪些地区？</p>
         </div>
         <figure class="chart-card">
           <figcaption>
             <strong>2030 年前各地区数据中心新增用电需求</strong>
-            <span>单位：TWh；来源：IEA Energy and AI</span>
+            <span>单位：TWh（太瓦时）；来源：IEA《Energy and AI》；数据整理：本作品</span>
           </figcaption>
-          <canvas id="regionalGrowthChart" tabindex="0" role="img" aria-label="该图展示美国新增240TWh，中国新增175TWh，欧洲新增45TWh，日本新增15TWh的数据中心用电需求。"></canvas>
-          <p class="chart-finding">AI 产品面向全球用户，但新增电网压力会集中在少数地区。</p>
-          <p class="long-desc">横向柱状图显示美国和中国的新增需求远高于欧洲和日本，提示基础设施账单具有明显地域集中性。来源：IEA Energy and AI。</p>
+          <canvas id="regionalGrowthChart" tabindex="0" role="img" aria-label="图表显示 2030 年前数据中心新增用电需求集中在美国、中国、欧洲和日本，其中美国新增 240 TWh，中国新增 175 TWh，欧洲新增 45 TWh，日本新增 15 TWh。"></canvas>
+          <p class="chart-finding">AI 产品面向全球用户，但新增电网负荷会集中在少数地区。</p>
+          <p class="long-desc">横向柱状图显示美国和中国的新增用电需求远高于欧洲和日本，提示基础设施账单具有明显地域集中性。这是数据中心整体口径，不是 AI 单独口径。</p>
         </figure>
       </section>
 
-      <section class="scrolly-section chart-section" aria-labelledby="section7-title">
+      <section class="scrolly-section local-pressure-section" id="local-pressure" aria-labelledby="section6-title" data-progress-section="local-pressure">
+        <div class="section-copy">
+          <p class="section-number">SECTION 6</p>
+          <h2 id="section6-title">第三张账单：地方基础设施</h2>
+          <p class="chart-question">当新增用电需求集中到少数地区，压力首先落到地方电网。</p>
+          <p>AI 产品面向全球用户，但数据中心并不会平均分布在全球每一个地方。新增负荷往往集中在少数电力节点、数据中心园区和大型云服务集聚区。</p>
+          <p>对地方而言，压力不只是“多用一些电”，而是变成更具体的基础设施问题：电网接入是否排队、输电和变电设施是否需要扩容、地方电价和用水安排是否受到影响、政府是否需要重新协调产业发展与公共资源。</p>
+        </div>
+        <div>
+          <div class="pressure-chain" role="list" aria-label="地方基础设施压力链条。每个节点可聚焦查看说明。">
+            <button type="button" role="listitem" data-tip="AI 和云服务扩张带来更高的数据中心负荷。">新增数据中心需求</button>
+            <button type="button" role="listitem" data-tip="大型数据中心需要稳定且高容量的电力接入。">电网接入申请</button>
+            <button type="button" role="listitem" data-tip="地方电网可能需要新建或升级线路、变电站和备用设施。">输电/变电扩容</button>
+            <button type="button" role="listitem" data-tip="冷却系统可能带来现场用水或间接水资源压力。">冷却与用水安排</button>
+            <button type="button" role="listitem" data-tip="选址、用地、电价、环保和公共资源分配需要被重新讨论。">地方社区与政府协调</button>
+          </div>
+          <div class="evidence-grid" id="localEvidenceCards" aria-label="地方基础设施压力的三个数据证据"></div>
+          <p class="long-desc">这些证据卡片由前文 IEA、DOE 与 LBNL 数据重组而来，用来连接“新增用电需求集中”与“地方基础设施承压”。这是数据中心整体口径，不是 AI 单独口径。</p>
+        </div>
+      </section>
+
+      <section class="scrolly-section chart-section" aria-labelledby="section7-title" data-progress-section="local-pressure">
         <div class="chart-copy">
           <p class="section-number">SECTION 7</p>
           <h2 id="section7-title">美国样本：地方电网正在提前加班</h2>
@@ -144,74 +170,80 @@
         <figure class="chart-card">
           <figcaption>
             <strong>美国数据中心用电增长</strong>
-            <span>单位：TWh；来源：DOE + LBNL</span>
+            <span>单位：TWh（太瓦时）；来源：DOE 与 LBNL《2024 United States Data Center Energy Usage Report》；数据整理：本作品</span>
           </figcaption>
-          <canvas id="usElectricityChart" tabindex="0" role="img" aria-label="该图展示美国数据中心用电从2014年的58TWh增长到2023年的176TWh，并预计到2028年达到325至580TWh区间。"></canvas>
+          <canvas id="usElectricityChart" tabindex="0" role="img" aria-label="图表显示美国数据中心用电从 2014 年 58 TWh 增长到 2023 年 176 TWh，并预计到 2028 年达到 325 至 580 TWh 区间。"></canvas>
           <p class="chart-finding">2028 年不是确定值，而是 325 到 580 TWh 的预测区间。</p>
-          <p class="long-desc">图表显示，美国数据中心用电从 2014 年的 58 TWh 增长到 2023 年的 176 TWh。2028 年数据使用区间展示，提醒读者这是预测范围，而不是确定结果。来源：DOE + LBNL。</p>
+          <p class="long-desc">美国样本把地方电网压力变得更具体：从历史用电增长到未来预测区间，数据中心用电正在进入公共电力规划。这是数据中心整体口径，不是 AI 单独口径。</p>
         </figure>
         <figure class="chart-card compact-card">
           <figcaption>
             <strong>美国总用电中的数据中心占比</strong>
-            <span>单位：%；来源：DOE + LBNL</span>
+            <span>单位：%；来源：DOE 与 LBNL《2024 United States Data Center Energy Usage Report》；数据整理：本作品</span>
           </figcaption>
-          <canvas id="usShareChart" tabindex="0" role="img" aria-label="该图展示美国数据中心占总用电比例从2023年的4.4%上升到2028年预测的6.7%至12%。"></canvas>
+          <canvas id="usShareChart" tabindex="0" role="img" aria-label="图表显示美国数据中心占总用电比例从 2023 年 4.4% 上升到 2028 年预测的 6.7% 至 12%。"></canvas>
           <p class="chart-finding">占比从 4.4% 到 6.7%-12%，意味着数据中心不再只是电力系统里的边缘负荷。</p>
-          <p class="long-desc">这组比例把 TWh 转换成电力系统中的位置：数据中心用电不只是企业内部成本，也会进入公共电力规划。来源：DOE + LBNL。</p>
+          <p class="long-desc">这组比例把 TWh 转换成电力系统中的位置：数据中心用电不只是企业内部成本，也会进入公共电力规划。这是数据中心整体口径，不是 AI 单独口径。</p>
         </figure>
       </section>
 
-      <section class="scrolly-section chart-section" aria-labelledby="section8-title">
+      <section class="scrolly-section chart-section" id="water-bill" aria-labelledby="section8-title" data-progress-section="water-bill">
         <div class="chart-copy">
           <p class="section-number">SECTION 8</p>
           <h2 id="section8-title">第二张账单：水资源</h2>
           <p class="chart-question">一个看不见摸不着的“云端”服务，为什么会让水账单出现？</p>
         </div>
-        <div class="scope-box small-box">
-          <strong>什么是直接耗水？</strong>
-          <p>直接耗水指数据中心现场用于冷却等环节的水。服务器持续运行会产生热量，冷却系统把这些热量带走，因此水资源成为数据中心基础设施的一部分。</p>
+        <div>
+          <div class="scope-box small-box">
+            <strong>什么是直接耗水？</strong>
+            <p>直接耗水指数据中心现场用于冷却等环节的水。服务器持续运行会产生热量，冷却系统把这些热量带走，因此水资源成为数据中心基础设施的一部分。</p>
+          </div>
+          <figure class="chart-card">
+            <figcaption>
+              <strong>美国数据中心直接耗水增长</strong>
+              <span>单位：十亿升；来源：DOE 与 LBNL《2024 United States Data Center Energy Usage Report》；数据整理：本作品</span>
+            </figcaption>
+            <canvas id="waterChart" tabindex="0" role="img" aria-label="图表显示美国数据中心直接耗水从 2014 年 21.2 十亿升增长到 2023 年 66 十亿升，并显示 2028 年超大规模数据中心 60 至 124 十亿升预测区间。"></canvas>
+            <p class="chart-finding">水账单不只存在于“干旱地区”的新闻里，也会随着数据中心规模扩张成为基础设施议题。</p>
+            <p class="long-desc">图表展示 2014 年 21.2 十亿升、2023 年 66 十亿升，以及 2028 年超大规模数据中心 60 至 124 十亿升的区间。这是数据中心整体口径，不是 AI 单独口径。</p>
+          </figure>
         </div>
-        <figure class="chart-card">
-          <figcaption>
-            <strong>美国数据中心直接耗水增长</strong>
-            <span>单位：十亿升；来源：LBNL Report</span>
-          </figcaption>
-          <canvas id="waterChart" tabindex="0" role="img" aria-label="该图展示美国数据中心直接耗水从2014年的21.2十亿升增长到2023年的66十亿升，并显示2028年超大规模数据中心60至124十亿升预测区间。"></canvas>
-          <p class="chart-finding">水账单不只存在于“干旱地区”的新闻里，也会随着数据中心规模扩张成为基础设施议题。</p>
-          <p class="long-desc">图表展示 2014 年 21.2 十亿升、2023 年 66 十亿升，以及 2028 年超大规模数据中心 60 至 124 十亿升的区间。来源：LBNL Report。</p>
-        </figure>
       </section>
 
-      <section class="scrolly-section" aria-labelledby="section9-title">
+      <section class="scrolly-section" aria-labelledby="section9-title" data-progress-section="water-bill">
         <div class="section-copy">
           <p class="section-number">SECTION 9</p>
           <h2 id="section9-title">隐藏账单：电力背后的水与碳</h2>
           <p>数据中心现场用水只是其中一层账单。电力生产本身也可能消耗水并带来温室气体排放。也就是说，AI 基础设施的环境成本并不总在数据中心围墙内发生。</p>
         </div>
-        <div class="large-number-grid" id="hiddenCostCards" aria-label="隐藏的水资源和碳排放账单"></div>
-        <p class="chart-finding">间接耗水约 8000 亿升，温室气体排放约 610 亿千克 CO₂e，这些账单更容易被“云端服务”的界面遮住。</p>
-        <p class="long-desc">这些数字提醒读者，数据中心的环境影响不总发生在园区内部。发电端的水和碳同样属于基础设施账单的一部分。来源：LBNL Report。</p>
+        <div>
+          <div class="large-number-grid" id="hiddenCostCards" aria-label="隐藏的水资源和碳排放账单"></div>
+          <p class="chart-finding">间接耗水约 8000 亿升，温室气体排放约 610 亿千克 CO₂e，这些账单更容易被“云端服务”的界面遮住。</p>
+          <p class="long-desc">这些数字提醒读者，数据中心的环境影响不总发生在园区内部。发电端的水和碳同样属于基础设施账单的一部分。来源：DOE 与 LBNL《2024 United States Data Center Energy Usage Report》；数据整理：本作品。这是数据中心整体口径，不是 AI 单独口径。</p>
+        </div>
       </section>
 
-      <section class="scrolly-section" aria-labelledby="section10-title">
+      <section class="scrolly-section" id="who-pays" aria-labelledby="section10-title" data-progress-section="who-pays">
         <div class="section-copy">
           <p class="section-number">SECTION 10</p>
           <h2 id="section10-title">谁获得便利，谁承担代价</h2>
           <p>AI 的收益和成本并不总落在同一张账单上。用户获得便利，科技公司获得增长；与此同时，地方社区、电网和政府承担资源压力、新增负荷与基础设施协调成本。</p>
         </div>
-        <div class="stakeholder-map" id="stakeholderMap" aria-label="用户、科技公司、地方社区、电网和政府之间的收益与成本关系图"></div>
-        <p class="long-desc">该关系图展示五类主体。用户获得便利，科技公司获得增长，地方社区承担资源压力，电网承担新增负荷，政府承担基础设施协调成本。来源：根据前文公开数据和叙事关系整理。</p>
+        <div>
+          <div class="stakeholder-map" id="stakeholderMap" aria-label="用户、科技公司、地方社区、电网和政府之间的收益与成本关系图"></div>
+          <p class="long-desc">将鼠标移到卡片上，或用键盘聚焦卡片，可以查看每类主体在这张基础设施账单中的位置。来源：根据前文公开数据和叙事关系整理。</p>
+        </div>
       </section>
 
-      <section class="scrolly-section closing-section" aria-labelledby="section11-title">
+      <section class="scrolly-section closing-section" aria-labelledby="section11-title" data-progress-section="who-pays">
         <div class="section-copy">
           <p class="section-number">SECTION 11</p>
           <h2 id="section11-title">看见账单，不等于拒绝 AI</h2>
           <p>本文的结论不是“AI 不应该发展”。AI 的便利是真实的，效率提升也是真实的。但如果只看产品体验，不看基础设施账单，公众就很难判断扩张是否公平、透明、可持续。</p>
           <ol class="closing-questions">
-            <li>谁应该披露真实能耗？</li>
+            <li>谁应该披露真实用电与用水？</li>
             <li>数据中心选址是否需要更严格评估？</li>
-            <li>AI 扩张能否与清洁能源建设同步？</li>
+            <li>AI 扩张能否与清洁电力建设同步？</li>
           </ol>
           <p class="closing-question">一次 AI 提问之后，账单不会消失。它只是被转移到了屏幕之外。</p>
         </div>
@@ -230,6 +262,10 @@
           <div class="data-table" id="regionalTable"></div>
         </details>
         <details>
+          <summary>地方基础设施压力证据</summary>
+          <div class="data-table" id="localTable"></div>
+        </details>
+        <details>
           <summary>美国数据中心用电与占比</summary>
           <div class="data-table" id="usTable"></div>
           <div class="data-table" id="shareTable"></div>
@@ -238,30 +274,26 @@
           <summary>美国数据中心直接耗水</summary>
           <div class="data-table" id="waterTable"></div>
         </details>
-      </section>
-
-      <section class="story-block source-list" aria-labelledby="source-title">
-        <h2 id="source-title">数据来源</h2>
-        <ul>
-          <li><a href="https://www.iea.org/reports/energy-and-ai" target="_blank" rel="noreferrer">International Energy Agency, Energy and AI, 2025</a></li>
-          <li><a href="https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf" target="_blank" rel="noreferrer">Lawrence Berkeley National Laboratory / U.S. DOE, 2024 United States Data Center Energy Usage Report</a></li>
-          <li><a href="data/data_notes.md">数据整理说明与待补充项</a></li>
-        </ul>
+        <details>
+          <summary>隐藏账单与主体关系</summary>
+          <div class="data-table" id="hiddenTable"></div>
+          <div class="data-table" id="stakeholderTable"></div>
+        </details>
       </section>
 
       <section class="story-block methodology" aria-labelledby="method-title">
         <h2 id="method-title">制作说明</h2>
         <p>
-          页面使用 HTML、CSS、JavaScript 与本地 Chart.js 制作。数据保存在 data 文件夹下的 CSV 中；所有图表只使用本次任务提供的数据，不估算单次 AI 提问耗电量或耗水量。
+          页面使用网页结构文件、样式表、脚本与本地图表库制作。数据保存在项目数据文件夹中；所有图表只使用本次任务提供或由既有数据重组的数据，不估算单次 AI 提问耗电量或耗水量。
         </p>
         <p>
-          本文不把所有数据中心用电简单归因于 AI，而是以数据中心作为观察 AI 基础设施扩张影响的窗口。AI-only 拆分、站点实时用水和单次查询能耗不进入图表，均列为待补充口径。
+          AI 单独用电拆分、站点实时用水、小时级电力来源和单次查询能耗不进入图表，均列为待补充口径。
         </p>
       </section>
     </main>
 
     <footer>
-      <p>数据更新日期：2026-06-12 · 未来源化数字均标注为待补充</p>
+      <p>数据更新日期：2026-06-24 · 未来源化数字均标注为待补充</p>
     </footer>
   </body>
 </html>

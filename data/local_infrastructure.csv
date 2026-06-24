@@ -1,0 +1,4 @@
+evidence,value_text,unit,source_title,source_url,note
+全球集中,"美国：+240 TWh；中国：+175 TWh；欧洲：+45 TWh",TWh,IEA Energy and AI,https://www.iea.org/reports/energy-and-ai,"2030 年前各地区新增数据中心用电需求，用于说明新增电网负荷集中在少数地区。"
+美国样本,"2014 年：58 TWh；2023 年：176 TWh；2028 年：325—580 TWh",TWh,DOE/LBNL 2024 United States Data Center Energy Usage Report,https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf,"美国数据中心用电增长和 2028 年预测区间，用于说明地方电网压力更具体。"
+占比变化,"2023 年：4.4%；2028 年：6.7%—12%",%,DOE/LBNL 2024 United States Data Center Energy Usage Report,https://eta-publications.lbl.gov/sites/default/files/2024-12/lbnl-2024-united-states-data-center-energy-usage-report.pdf,"美国数据中心用电占全社会用电比例，用于说明数据中心从边缘负荷变成公共电力规划议题。"
