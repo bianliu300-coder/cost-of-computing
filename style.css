@@ -88,7 +88,8 @@ a {
   gap: clamp(28px, 6vw, 72px);
   align-items: start;
   min-height: 82vh;
-  padding: clamp(64px, 8vw, 110px) 0;
+  padding: clamp(76px, 8vw, 120px) 0;
+  scroll-margin-top: 76px;
   border-bottom: 1px solid var(--line);
   opacity: 0;
   transform: translateY(20px);
@@ -124,6 +125,11 @@ a {
 
 .opening-section {
   grid-template-columns: minmax(0, 1fr);
+  min-height: auto;
+}
+
+.opening-section > .section-copy {
+  position: static;
 }
 
 .visual-chain {
@@ -161,17 +167,18 @@ a {
 
 .flow-map button,
 .pressure-chain button {
-  min-height: 118px;
   cursor: help;
   font: inherit;
 }
 
 .flow-map button {
-  min-height: 104px;
+  min-height: 0;
   display: grid;
   align-content: start;
   gap: 8px;
+  border-radius: 0;
   text-align: left;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .flow-map button strong,
@@ -192,22 +199,9 @@ a {
 .pressure-chain button:focus-visible {
   border-color: var(--blue);
   background: rgba(59, 169, 255, 0.1);
+  box-shadow: 0 12px 26px rgba(8, 26, 43, 0.08);
   outline: none;
-}
-
-.flow-map button:hover::after,
-.flow-map button:focus-visible::after,
-.pressure-chain button:hover::after,
-.pressure-chain button:focus-visible::after {
-  content: attr(data-tip);
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.35;
+  transform: translateY(-2px);
 }
 
 .scope-box {
@@ -242,6 +236,7 @@ a {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 600ms ease, transform 600ms ease;
+  overflow: visible;
 }
 
 .chart-card + .chart-card {
@@ -270,7 +265,9 @@ a {
 
 .chart-card canvas {
   width: 100% !important;
-  height: 360px !important;
+  min-height: 380px;
+  height: 380px !important;
+  cursor: pointer;
 }
 
 .data-table {
@@ -325,14 +322,17 @@ a {
 
 .large-number-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
   gap: 16px;
 }
 
 .large-number-grid article {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
   border-top: 5px solid var(--blue);
   background: #fff;
-  padding: 24px;
+  padding: clamp(22px, 3vw, 30px);
   box-shadow: 0 18px 44px rgba(8, 26, 43, 0.07);
 }
 
@@ -352,9 +352,17 @@ a {
   display: block;
   color: var(--black);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(34px, 5vw, 64px);
-  line-height: 1;
-  white-space: nowrap;
+  font-size: clamp(2.4rem, 5vw, 4.8rem);
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.large-number-grid p {
+  margin-top: 16px;
+}
+
+.large-number-grid small {
+  margin-top: auto;
 }
 
 .stakeholder-map {
@@ -808,24 +816,37 @@ main {
 
 .pressure-chain {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
 }
 
 .pressure-chain button {
   min-height: 132px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
   border-color: rgba(139, 92, 246, 0.32);
   background: rgba(255, 255, 255, 0.86);
+  text-align: left;
+  line-height: 1.35;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.pressure-chain button strong,
+.pressure-chain button small {
+  display: block;
+}
+
+.pressure-chain button small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .pressure-chain button:not(:last-child)::before {
-  content: "→";
+  content: "";
   position: absolute;
-  right: -13px;
-  top: 50%;
-  z-index: 2;
-  color: var(--orange);
-  transform: translateY(-50%);
+  display: none;
 }
 
 .pressure-chain button:hover,
@@ -836,7 +857,7 @@ main {
 
 .evidence-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
@@ -873,10 +894,11 @@ main {
 .evidence-grid li {
   color: var(--black);
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 22px;
+  font-size: clamp(18px, 1.7vw, 22px);
   font-weight: 800;
   line-height: 1.15;
-  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
 }
 
 .evidence-grid li + li {
@@ -910,6 +932,30 @@ main {
   font-size: 22px;
   font-weight: 800;
   line-height: 1;
+  pointer-events: none;
+}
+
+.node-tooltip {
+  position: fixed;
+  z-index: 80;
+  min-width: 220px;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 1px solid rgba(59, 169, 255, 0.36);
+  background: #081A2B;
+  color: #F5F7FA;
+  box-shadow: 0 18px 42px rgba(8, 26, 43, 0.24);
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.node-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .chart-frame canvas {
@@ -1246,6 +1292,8 @@ main {
 }
 
 .closing-section {
+  grid-template-columns: minmax(0, 0.9fr) minmax(300px, 0.7fr);
+  align-items: start;
   border-bottom-color: rgba(182, 74, 69, 0.32);
 }
 
@@ -1259,6 +1307,44 @@ main {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(24px, 3vw, 40px);
   line-height: 1.24;
+}
+
+.checklist-card {
+  border-top: 5px solid var(--purple);
+  background: #fff;
+  padding: clamp(22px, 3vw, 30px);
+  box-shadow: 0 18px 44px rgba(8, 26, 43, 0.07);
+}
+
+.checklist-card h3 {
+  margin-bottom: 16px;
+  color: var(--black);
+  font-size: 22px;
+}
+
+.checklist-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist-card li {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px;
+  color: #3d424a;
+}
+
+.checklist-card li::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  margin-top: 10px;
+  background: var(--blue);
+}
+
+.checklist-card li + li {
+  margin-top: 12px;
 }
 
 .text-columns {
@@ -1335,6 +1421,18 @@ footer {
     min-height: auto;
   }
 
+  .flow-map {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pressure-chain {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+
+  .evidence-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
   .scrolly-section > .section-copy,
   .scrolly-section > .chart-copy {
     position: static;
@@ -1407,7 +1505,22 @@ footer {
 
   .chart-card canvas,
   .chart-frame canvas {
-    height: 280px !important;
+    min-height: 300px;
+    height: 300px !important;
+  }
+
+  .flow-map {
+    grid-template-columns: 1fr;
+  }
+
+  .pressure-chain,
+  .evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .node-tooltip {
+    min-width: 0;
+    max-width: calc(100vw - 32px);
   }
 
   .bill-replay ol {

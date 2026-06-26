@@ -98,17 +98,24 @@ const globalValueLabelsPlugin = {
   id: "globalValueLabels",
   afterDatasetsDraw(chart) {
     if (chart.canvas.id !== "globalElectricityChart") return;
-    const { ctx } = chart;
+    const { ctx, chartArea } = chart;
     const meta = chart.getDatasetMeta(0);
     ctx.save();
     ctx.font = "700 13px Noto Sans SC, Microsoft YaHei, Arial";
     ctx.fillStyle = "#081A2B";
-    ctx.textAlign = "center";
     meta.data.forEach((point, index) => {
       const value = chart.data.datasets[0].data[index];
       const label = `${chart.data.labels[index]} 年 ${value} TWh`;
-      const y = point.y - 14;
-      ctx.fillText(label, point.x, Math.max(18, y));
+      const isFirst = index === 0;
+      const isLast = index === meta.data.length - 1;
+      ctx.textAlign = isLast ? "right" : isFirst ? "left" : "center";
+      const x = isLast
+        ? Math.min(point.x - 6, chartArea.right - 4)
+        : isFirst
+          ? Math.max(point.x + 6, chartArea.left + 4)
+          : point.x;
+      const y = Math.max(chartArea.top + 14, point.y - 14);
+      ctx.fillText(label, x, y);
     });
     ctx.restore();
   }
@@ -118,9 +125,18 @@ Chart.register(globalValueLabelsPlugin);
 
 Chart.defaults.color = "#5d6470";
 Chart.defaults.font.family = '"Noto Sans SC", "Microsoft YaHei", Arial, sans-serif';
+Chart.defaults.font.size = window.innerWidth <= 560 ? 11 : 13;
 Chart.defaults.plugins.tooltip.backgroundColor = "#081A2B";
 Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.tooltip.titleFont = { size: window.innerWidth <= 560 ? 12 : 13, weight: "700" };
+Chart.defaults.plugins.tooltip.bodyFont = { size: window.innerWidth <= 560 ? 12 : 13 };
 Chart.defaults.plugins.legend.labels.boxWidth = 12;
+Chart.defaults.interaction.mode = "nearest";
+Chart.defaults.interaction.intersect = true;
+Chart.defaults.hover.mode = "nearest";
+Chart.defaults.hover.intersect = true;
+Chart.defaults.plugins.tooltip.mode = "nearest";
+Chart.defaults.plugins.tooltip.intersect = true;
 
 const sources = {
   global: "data/global_energy.csv",
@@ -134,6 +150,14 @@ const sources = {
 
 const store = {};
 const charts = {};
+const barSizing = {
+  categoryPercentage: 0.7,
+  barPercentage: 0.8
+};
+const strictInteraction = {
+  mode: "nearest",
+  intersect: true
+};
 
 function parseCSV(text) {
   const rows = [];
@@ -224,19 +248,38 @@ function fillTables() {
 }
 
 function formatValue(value, unit) {
-  if (Array.isArray(value)) return `${value[0]}-${value[1]} ${unit}`;
-  return `${value} ${unit}`;
+  if (Array.isArray(value)) return unit === "%" ? `预测区间：${value[0]}%—${value[1]}%` : `预测区间：${value[0]}—${value[1]} ${unit}`;
+  return unit === "%" ? `${value}%` : `${value} ${unit}`;
+}
+
+function chartFontSize() {
+  return window.innerWidth <= 560 ? 11 : 13;
+}
+
+function tooltipTitle(context) {
+  const label = context[0]?.label || "";
+  return Array.isArray(label) ? label.join(" ") : label;
 }
 
 function commonOptions(yTitle, unit = yTitle) {
   return {
-    responsive: true,
+    responsive: false,
     maintainAspectRatio: false,
+    layout: {
+      padding: { top: 32, right: 48, bottom: 28, left: 32 }
+    },
+    interaction: { ...strictInteraction },
+    hover: { ...strictInteraction },
+    onHover(event, elements) {
+      event.native.target.style.cursor = elements.length ? "pointer" : "default";
+    },
     plugins: {
       legend: { display: false },
       tooltip: {
         enabled: true,
+        ...strictInteraction,
         callbacks: {
+          title: tooltipTitle,
           label(context) {
             return `${context.dataset.label}：${formatValue(context.raw, unit)}`;
           }
@@ -247,19 +290,53 @@ function commonOptions(yTitle, unit = yTitle) {
       y: {
         beginAtZero: true,
         title: { display: true, text: yTitle },
+        ticks: { font: { size: chartFontSize() } },
         grid: { color: "rgba(213, 220, 228, 0.72)" }
       },
       x: {
-        ticks: { maxRotation: 0, autoSkip: false },
+        ticks: { maxRotation: 0, autoSkip: false, font: { size: chartFontSize() } },
         grid: { display: false }
       }
     }
   };
 }
 
+function syncChartSize(chart) {
+  const width = Math.round(chart.canvas.clientWidth);
+  const height = Math.round(chart.canvas.clientHeight);
+  if (!width || !height) return;
+  const canvasSizeChanged = chart.canvas.width !== width || chart.canvas.height !== height;
+  if (canvasSizeChanged) {
+    chart.canvas.width = width;
+    chart.canvas.height = height;
+  }
+  if (canvasSizeChanged || chart.width !== width || chart.height !== height) {
+    chart.resize(width, height);
+    chart.update("none");
+  }
+}
+
+function createChart(canvasId, config) {
+  const canvas = document.getElementById(canvasId);
+  canvas.width = Math.round(canvas.clientWidth);
+  canvas.height = Math.round(canvas.clientHeight);
+  const chart = new Chart(canvas, config);
+  syncChartSize(chart);
+  requestAnimationFrame(() => syncChartSize(chart));
+  return chart;
+}
+
+function syncAllChartSizes() {
+  requestAnimationFrame(() => {
+    Object.values(charts).forEach((chart) => {
+      if (chart) syncChartSize(chart);
+    });
+  });
+}
+
 function drawGlobalChart() {
   const rows = store.global.filter((row) => row.scenario === "base_case");
-  charts.global = new Chart(document.getElementById("globalElectricityChart"), {
+  charts.global = createChart("globalElectricityChart", {
     type: "line",
     data: {
       labels: rows.map((row) => row.year),
@@ -271,14 +348,17 @@ function drawGlobalChart() {
         pointBackgroundColor: palette.blueDark,
         pointBorderColor: "#ffffff",
         pointBorderWidth: 2,
-        pointRadius: 6,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHitRadius: 8,
         tension: 0.25,
         fill: true
       }]
     },
     options: {
       ...commonOptions("TWh（太瓦时）", "TWh"),
-      layout: { padding: { top: 28 } }
+      layout: { padding: { top: 32, right: 48, bottom: 28, left: 32 } },
+      elements: { point: { radius: 5, hitRadius: 8, hoverRadius: 7 } }
     }
   });
 }
@@ -307,11 +387,12 @@ function drawScenarioChart(active = "high_efficiency") {
     charts.scenario.update();
     return;
   }
-  charts.scenario = new Chart(document.getElementById("scenarioChart"), {
+  charts.scenario = createChart("scenarioChart", {
     type: "bar",
     data: {
       labels: rows.map((row) => row.scenario_label),
       datasets: [{
+        ...barSizing,
         label: "2035 年数据中心用电量",
         data: rows.map((row) => number(row.electricity_twh)),
         backgroundColor: colors,
@@ -325,7 +406,10 @@ function drawScenarioChart(active = "high_efficiency") {
       plugins: {
         legend: { display: false },
         tooltip: {
+          enabled: true,
+          ...strictInteraction,
           callbacks: {
+            title: tooltipTitle,
             label(context) {
               const row = rows[context.dataIndex];
               const suffix = row.scenario === "lift_off" ? "+" : "";
@@ -339,11 +423,12 @@ function drawScenarioChart(active = "high_efficiency") {
 }
 
 function drawRegionalChart() {
-  charts.regional = new Chart(document.getElementById("regionalGrowthChart"), {
+  charts.regional = createChart("regionalGrowthChart", {
     type: "bar",
     data: {
       labels: store.regional.map((row) => row.region),
       datasets: [{
+        ...barSizing,
         label: "新增用电需求",
         data: store.regional.map((row) => number(row.added_electricity_twh)),
         backgroundColor: ["#1D4ED8", "#3BA9FF", "#93C5FD", "#BFDBFE"],
@@ -362,11 +447,12 @@ function drawUSChart() {
   const historical = rows.filter((row) => row.scenario === "historical" || row.scenario === "current");
   const low = rows.find((row) => row.scenario === "low_projection");
   const high = rows.find((row) => row.scenario === "high_projection");
-  charts.us = new Chart(document.getElementById("usElectricityChart"), {
+  charts.us = createChart("usElectricityChart", {
     type: "bar",
     data: {
-      labels: [...historical.map((row) => row.year), "2028 预测区间"],
+      labels: [...historical.map((row) => row.year), ["2028", "预测区间"]],
       datasets: [{
+        ...barSizing,
         label: "美国数据中心用电量",
         data: [...historical.map((row) => number(row.electricity_twh)), [number(low.electricity_twh), number(high.electricity_twh)]],
         backgroundColor: ["#93C5FD", "#60A5FA", "#1D4ED8", "#8B5CF6"],
@@ -376,11 +462,12 @@ function drawUSChart() {
     options: commonOptions("TWh（太瓦时）", "TWh")
   });
 
-  charts.share = new Chart(document.getElementById("usShareChart"), {
+  charts.share = createChart("usShareChart", {
     type: "bar",
     data: {
-      labels: ["2023", "2028 预测区间"],
+      labels: ["2023", ["2028", "预测区间"]],
       datasets: [{
+        ...barSizing,
         label: "占美国总用电比例",
         data: [4.4, [6.7, 12]],
         backgroundColor: [palette.blue, palette.infra],
@@ -396,11 +483,12 @@ function drawWaterChart() {
   const low = rows.find((row) => row.scenario === "low_projection");
   const high = rows.find((row) => row.scenario === "high_projection");
   const historical = rows.filter((row) => row.scenario === "historical" || row.scenario === "current");
-  charts.water = new Chart(document.getElementById("waterChart"), {
+  charts.water = createChart("waterChart", {
     type: "bar",
     data: {
-      labels: [...historical.map((row) => row.year), "2028 超大规模区间"],
+      labels: [...historical.map((row) => row.year), ["2028", "超大规模区间"]],
       datasets: [{
+        ...barSizing,
         label: "直接耗水",
         data: [...historical.map((row) => number(row.value_billion_liters)), [number(low.value_billion_liters), number(high.value_billion_liters)]],
         backgroundColor: ["#99F6E4", palette.water, palette.waterDark],
@@ -427,13 +515,16 @@ function renderHiddenCosts() {
   const container = document.getElementById("hiddenCostCards");
   container.innerHTML = store.hidden.map((row) => {
     const displayValue = row.unit === "billion_kg_co2e" ? "610 亿千克 CO₂e" : "8000 亿升";
+    const note = row.metric === "ghg_emissions"
+      ? "与美国数据中心相关的温室气体排放。"
+      : "与美国数据中心用电相关的间接耗水。";
     return `
-      <article>
-        <span>${row.label}</span>
+      <article class="stat-card">
+        <span>${formatTableCell(row.label)}</span>
         <strong>${displayValue}</strong>
         <em>按报告单位换算显示</em>
-        <p>${row.note}</p>
-        <small>来源：${row.source_title}</small>
+        <p>${note}</p>
+        <small>来源：LBNL 报告</small>
       </article>
     `;
   }).join("");
@@ -485,6 +576,84 @@ function initProgressNav() {
   sections.forEach((section) => observer.observe(section));
 }
 
+function ensureNodeTooltip() {
+  let tooltip = document.querySelector(".node-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.className = "node-tooltip";
+    tooltip.id = "node-tip-floating";
+    tooltip.setAttribute("role", "tooltip");
+    tooltip.setAttribute("aria-hidden", "true");
+    document.body.appendChild(tooltip);
+  }
+  return tooltip;
+}
+
+function positionNodeTooltip(target, tooltip) {
+  const gap = 10;
+  const margin = 12;
+  const rect = target.getBoundingClientRect();
+  tooltip.style.left = "0px";
+  tooltip.style.top = "0px";
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const left = Math.min(
+    Math.max(rect.left + rect.width / 2 - tooltipRect.width / 2, margin),
+    window.innerWidth - tooltipRect.width - margin
+  );
+  const below = rect.bottom + gap;
+  const above = rect.top - tooltipRect.height - gap;
+  const top = below + tooltipRect.height <= window.innerHeight - margin
+    ? below
+    : Math.max(margin, above);
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+}
+
+function bindNodeTooltips() {
+  const tooltip = ensureNodeTooltip();
+  let activeTarget = null;
+
+  function show(target) {
+    const text = target.dataset.tip;
+    if (!text) return;
+    activeTarget = target;
+    tooltip.textContent = text;
+    tooltip.classList.add("is-visible");
+    tooltip.setAttribute("aria-hidden", "false");
+    positionNodeTooltip(target, tooltip);
+  }
+
+  function hide() {
+    activeTarget = null;
+    tooltip.classList.remove("is-visible");
+    tooltip.setAttribute("aria-hidden", "true");
+  }
+
+  document.querySelectorAll(".flow-map button[data-tip], .pressure-chain button[data-tip]").forEach((target) => {
+    target.setAttribute("aria-describedby", tooltip.id);
+    target.addEventListener("mouseenter", () => show(target));
+    target.addEventListener("focus", () => show(target));
+    target.addEventListener("mouseleave", hide);
+    target.addEventListener("blur", hide);
+    target.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (activeTarget === target && tooltip.classList.contains("is-visible")) {
+        hide();
+      } else {
+        show(target);
+      }
+    });
+  });
+
+  document.addEventListener("click", hide);
+  window.addEventListener("scroll", () => {
+    if (activeTarget) positionNodeTooltip(activeTarget, tooltip);
+  }, true);
+  window.addEventListener("resize", () => {
+    if (activeTarget) positionNodeTooltip(activeTarget, tooltip);
+  });
+}
+
 async function init() {
   try {
     const [global, regional, local, us, water, hidden, stakeholders] = await Promise.all([
@@ -507,6 +676,7 @@ async function init() {
     renderHiddenCosts();
     renderStakeholders();
     bindScenarioButtons();
+    bindNodeTooltips();
     initReveal();
     initProgressNav();
   } catch (error) {
@@ -517,3 +687,4 @@ async function init() {
 }
 
 init();
+window.addEventListener("resize", syncAllChartSizes);
