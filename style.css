@@ -66,11 +66,13 @@ a {
 }
 
 .progress-nav a {
+  flex: 0 1 auto;
   border: 1px solid transparent;
   color: #4b5563;
   padding: 5px 10px;
   font-size: 13px;
   font-weight: 800;
+  white-space: nowrap;
   text-decoration: none;
 }
 
@@ -91,9 +93,13 @@ a {
   padding: clamp(76px, 8vw, 120px) 0;
   scroll-margin-top: 76px;
   border-bottom: 1px solid var(--line);
+  transition: opacity 600ms ease, transform 600ms ease;
+}
+
+.reveal-ready .scrolly-section,
+.reveal-ready .chart-card {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 600ms ease, transform 600ms ease;
 }
 
 .scrolly-section.is-visible,
@@ -233,8 +239,6 @@ a {
   background: var(--panel);
   padding: clamp(18px, 3vw, 28px);
   box-shadow: 0 18px 44px rgba(8, 26, 43, 0.07);
-  opacity: 0;
-  transform: translateY(20px);
   transition: opacity 600ms ease, transform 600ms ease;
   overflow: visible;
 }
@@ -743,9 +747,25 @@ main {
 
 .interaction-hint {
   max-width: 760px;
-  margin: 18px 0 0;
+  margin: 12px 0 6px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.interaction-hint::before {
+  content: "↗";
+  margin-right: 6px;
+  color: var(--blue-dark);
+}
+
+.scope-footnote {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .section-heading {
@@ -1389,8 +1409,18 @@ footer {
   }
 
   .progress-nav {
-    justify-content: flex-start;
-    overflow-x: auto;
+    justify-content: center;
+    gap: 4px;
+    overflow: hidden;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .progress-nav a {
+    flex: 1 1 0;
+    padding-right: 6px;
+    padding-left: 6px;
+    text-align: center;
   }
 
   .intro-grid,
@@ -1469,6 +1499,14 @@ footer {
   }
 }
 
+@media (max-width: 768px) {
+  .chart-card canvas,
+  .chart-frame canvas {
+    min-height: 310px;
+    height: 310px !important;
+  }
+}
+
 @media (max-width: 560px) {
   .hero {
     min-height: auto;
@@ -1505,8 +1543,19 @@ footer {
 
   .chart-card canvas,
   .chart-frame canvas {
-    min-height: 300px;
-    height: 300px !important;
+    min-height: 290px;
+    height: 290px !important;
+  }
+
+  .progress-nav {
+    gap: 2px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .progress-nav a {
+    padding: 5px 3px;
+    font-size: 12px;
   }
 
   .flow-map {
@@ -1525,5 +1574,18 @@ footer {
 
   .bill-replay ol {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal-ready .scrolly-section,
+  .reveal-ready .chart-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

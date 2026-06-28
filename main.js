@@ -256,6 +256,12 @@ function chartFontSize() {
   return window.innerWidth <= 560 ? 11 : 13;
 }
 
+function chartLayoutPadding() {
+  if (window.innerWidth <= 560) return { top: 18, right: 12, bottom: 18, left: 8 };
+  if (window.innerWidth <= 768) return { top: 24, right: 24, bottom: 22, left: 16 };
+  return { top: 32, right: 48, bottom: 28, left: 32 };
+}
+
 function tooltipTitle(context) {
   const label = context[0]?.label || "";
   return Array.isArray(label) ? label.join(" ") : label;
@@ -266,7 +272,7 @@ function commonOptions(yTitle, unit = yTitle) {
     responsive: false,
     maintainAspectRatio: false,
     layout: {
-      padding: { top: 32, right: 48, bottom: 28, left: 32 }
+      padding: chartLayoutPadding()
     },
     interaction: { ...strictInteraction },
     hover: { ...strictInteraction },
@@ -357,7 +363,7 @@ function drawGlobalChart() {
     },
     options: {
       ...commonOptions("TWh（太瓦时）", "TWh"),
-      layout: { padding: { top: 32, right: 48, bottom: 28, left: 32 } },
+      layout: { padding: chartLayoutPadding() },
       elements: { point: { radius: 5, hitRadius: 8, hoverRadius: 7 } }
     }
   });
@@ -554,6 +560,11 @@ function bindScenarioButtons() {
 }
 
 function initReveal() {
+  if (!("IntersectionObserver" in window)) {
+    document.querySelectorAll(".scrolly-section, .chart-card").forEach((item) => item.classList.add("is-visible"));
+    return;
+  }
+  document.documentElement.classList.add("reveal-ready");
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) entry.target.classList.add("is-visible");
@@ -564,16 +575,29 @@ function initReveal() {
 
 function initProgressNav() {
   const links = new Map([...document.querySelectorAll("[data-progress-link]")].map((link) => [link.dataset.progressLink, link]));
-  const sections = document.querySelectorAll("[data-progress-section]");
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries
-      .filter((entry) => entry.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    const key = visible.target.dataset.progressSection;
+  const sections = [...document.querySelectorAll("[data-progress-section]")];
+  let queued = false;
+
+  function update() {
+    queued = false;
+    const marker = window.innerHeight * 0.35;
+    let key = sections[0]?.dataset.progressSection;
+    sections.forEach((section) => {
+      if (section.getBoundingClientRect().top <= marker) key = section.dataset.progressSection;
+    });
     links.forEach((link, linkKey) => link.classList.toggle("is-active", linkKey === key));
-  }, { rootMargin: "-28% 0px -55% 0px", threshold: [0.12, 0.35, 0.65] });
-  sections.forEach((section) => observer.observe(section));
+  }
+
+  function scheduleUpdate() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(update);
+  }
+
+  window.addEventListener("scroll", scheduleUpdate, { passive: true });
+  window.addEventListener("resize", scheduleUpdate);
+  links.forEach((link) => link.addEventListener("click", scheduleUpdate));
+  update();
 }
 
 function ensureNodeTooltip() {
@@ -637,11 +661,7 @@ function bindNodeTooltips() {
     target.addEventListener("blur", hide);
     target.addEventListener("click", (event) => {
       event.stopPropagation();
-      if (activeTarget === target && tooltip.classList.contains("is-visible")) {
-        hide();
-      } else {
-        show(target);
-      }
+      show(target);
     });
   });
 
@@ -655,6 +675,9 @@ function bindNodeTooltips() {
 }
 
 async function init() {
+  initReveal();
+  initProgressNav();
+  bindNodeTooltips();
   try {
     const [global, regional, local, us, water, hidden, stakeholders] = await Promise.all([
       loadCSV(sources.global),
@@ -676,9 +699,6 @@ async function init() {
     renderHiddenCosts();
     renderStakeholders();
     bindScenarioButtons();
-    bindNodeTooltips();
-    initReveal();
-    initProgressNav();
   } catch (error) {
     document.querySelectorAll(".chart-card, .evidence-grid, .large-number-grid, .stakeholder-map").forEach((card) => {
       card.insertAdjacentHTML("beforeend", `<p class="load-error">${error.message}。请通过本地服务器打开页面。</p>`);
